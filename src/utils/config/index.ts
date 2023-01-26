@@ -10,7 +10,7 @@ export interface Config {
   neo4jInstanceName: string;
 }
 
-export const createConfig = (): Config => {
+export const loadConfig = (): Config => {
   const port = parseInt(process.env.PORT as string, 10) || 8000;
   const neo4jUri = process.env.NEO4J_URI as string;
   const neo4jUsername = process.env.NEO4J_USERNAME as string;

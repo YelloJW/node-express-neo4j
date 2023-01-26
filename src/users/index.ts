@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { Driver } from "neo4j-driver";
+import { GraphDb } from "../utils/graph";
 import { routeHandler } from "../utils/middleware/routeHandler";
 import { GetUser } from "./application/getUser";
 import { PostUser } from "./application/postUser";
@@ -10,14 +10,12 @@ import { postUserFollow } from "./infrastructure/handlers/postUserFollow";
 import { Neo4jUserRepository } from "./infrastructure/repositories/neo4jUserRepository";
 
 type Dependencies = {
-  graphDriver: Driver;
+  router: Router;
+  graphDb: GraphDb;
 };
 
-export function createModule(
-  router: Router,
-  { graphDriver }: Dependencies
-): void {
-  const neo4jRepository = new Neo4jUserRepository(graphDriver);
+export function createModule({ router, graphDb }: Dependencies): void {
+  const neo4jRepository = new Neo4jUserRepository(graphDb);
   const getUserController = getUser(new GetUser(neo4jRepository));
   const postUserController = postUser(new PostUser(neo4jRepository));
   const postUserFollowController = postUserFollow(

@@ -1,7 +1,7 @@
-import { Driver, Session } from "neo4j-driver";
+import { Session } from "neo4j-driver";
 import { v4 as uuid } from "uuid";
 
-import { openSession } from "../../../utils/graph/openSession";
+import { GraphDb } from "../../../utils/graph";
 import * as Nodes from "../models/nodes";
 import * as QueryResults from "../models/queryResults";
 import { User } from "../../domain/models/user";
@@ -9,7 +9,7 @@ import { Follows } from "../../domain/models/follows";
 import { UserRepository } from "../../domain/interfaces/userRepository";
 
 export class Neo4jUserRepository implements UserRepository {
-  constructor(private readonly driver: Driver) {}
+  constructor(private readonly graphDb: GraphDb) {}
 
   mapToUser(node: Nodes.User): User {
     if (!node) {
@@ -58,7 +58,7 @@ export class Neo4jUserRepository implements UserRepository {
       firstName: user.firstName,
       lastName: user.lastName,
     };
-    return openSession<User>(this.driver, async (session: Session) => {
+    return this.graphDb.session<User>(async (session: Session) => {
       const result = await session.executeWrite((tx) =>
         tx.run<QueryResults.User>(query, params)
       );
@@ -73,7 +73,7 @@ export class Neo4jUserRepository implements UserRepository {
       WHERE user.id = $id
       RETURN user`;
     const params = { id };
-    return openSession<User>(this.driver, async (session: Session) => {
+    return this.graphDb.session<User>(async (session: Session) => {
       const result = await session.executeRead((tx) =>
         tx.run<QueryResults.User>(query, params)
       );
@@ -94,7 +94,7 @@ export class Neo4jUserRepository implements UserRepository {
       RETURN actor, relationship, subject`;
     const params = { actorId, subjectId };
 
-    return openSession<Follows>(this.driver, async (session: Session) => {
+    return this.graphDb.session<Follows>(async (session: Session) => {
       const result = await session.executeWrite((tx) =>
         tx.run<QueryResults.Follow>(query, params)
       );
