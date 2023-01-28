@@ -1,26 +1,27 @@
 import express from "express";
 import { loadConfig } from "./utils/config";
-import { GraphDb } from "./utils/graph";
+import { GraphDb } from "./utils/neo4j";
+import { createConnectionPool } from "./utils/postgres";
 import { log } from "./utils/log";
 import { handleError } from "./utils/middleware/errorHandler";
-import { createModule as createUserModule } from "./users/index";
+import { createRoutes as createUserRoutes } from "./users";
+import { createRoutes as createAccountRoutes } from "./accounts";
 
 (async function main() {
   const app = express();
 
   const config = loadConfig();
-  const graphDb = await GraphDb.connect({
-    uri: config.neo4jUri,
-    username: config.neo4jUsername,
-    password: config.neo4jPassword,
-  });
+
+  const graphDb = await GraphDb.connect(config.graphDb);
+  const postgresConnectionPool = createConnectionPool(config.postgresDb);
 
   app.use(express.json());
 
   const router = express.Router();
 
   router.get("/test", (_, res) => res.send("Hello world"));
-  createUserModule({ router, graphDb });
+  createUserRoutes(router, { graphDb });
+  createAccountRoutes(router, { postgresConnectionPool });
 
   app.use("/v1", router);
 
